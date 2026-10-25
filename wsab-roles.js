@@ -2,7 +2,7 @@
 (() => {
   const PROFILE_KEY='wsab_user_profile_v1';
   const SESSION_KEY='wsab_firebase_session_v1';
-  const ACCESS={guest:['dashboard','library','bank'],student:['dashboard','library','bank','student','myProgress'],teacher:['dashboard','lesson','library','bank','grades','schedule','tests','teacher','student','school','semester','attendance','grader','oral','self','solver','reports','management','myProgress'],school:['dashboard','library','bank','grades','schedule','tests','teacher','student','school','semester','attendance','grader','oral','self','solver','reports','management','schoolStats']};
+  const ACCESS={guest:['dashboard','library','bank'],student:['dashboard','library','bank','student','myProgress'],teacher:['dashboard','lesson','library','bank','grades','schedule','tests','teacher','teacherAgent','student','school','semester','attendance','grader','oral','self','solver','reports','management','myProgress'],school:['dashboard','library','bank','grades','schedule','tests','teacher','teacherAgent','student','school','semester','attendance','grader','oral','self','solver','reports','management','schoolStats']};
   const LABEL={guest:'زائر',student:'طالب',teacher:'معلم',school:'إدارة المدرسة'};
   const readJson=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}};
   const writeJson=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
