@@ -31,4 +31,4 @@
 
 ## البناء
 
-يتم البناء والنشر عبر GitHub Actions من فرع `main`، مع فحص JavaScript والتحقق من PWA بعد النشر.
+يتم البناء الآن كملف Android APK قابل للتثبيت عبر GitHub Actions.
