@@ -1,0 +1,20 @@
+{
+  "packageId": "com.wsab.educational.science",
+  "host": "mdrstalnwr33-beep.github.io",
+  "name": "منصة وصاب التعليمية العلمية",
+  "launcherName": "وصاب التعليمية",
+  "display": "standalone",
+  "themeColor": "#0f766e",
+  "navigationColor": "#0b2f2d",
+  "navigationColorDark": "#0b2f2d",
+  "navigationDividerColor": "#0b2f2d",
+  "navigationDividerColorDark": "#0b2f2d",
+  "startUrl": "/wsab-science.firebasestorage.app/",
+  "iconUrl": "https://mdrstalnwr33-beep.github.io/wsab-science.firebasestorage.app/icons/icon.svg",
+  "maskableIconUrl": "https://mdrstalnwr33-beep.github.io/wsab-science.firebasestorage.app/icons/icon.svg",
+  "webManifestUrl": "https://mdrstalnwr33-beep.github.io/wsab-science.firebasestorage.app/manifest.json",
+  "fallbackType": "customtabs",
+  "enableNotifications": false,
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1
+}
