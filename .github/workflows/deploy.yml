@@ -1,4 +1,4 @@
-name: Build Wsab Science
+name: Build Wsab Science APK
 
 on:
   push:
@@ -10,61 +10,74 @@ permissions:
   actions: write
 
 concurrency:
-  group: wsab-build
+  group: wsab-apk-build
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-apk:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Prepare site
+
+      - name: Prepare web assets
         shell: bash
         run: |
-          rm -rf site
-          mkdir -p site/icons
+          rm -rf site app/src/main/assets/site
+          mkdir -p site/icons app/src/main/assets/site/icons
           cp index.html manifest.json sw.js firebase-rest.js wsab-features.js wsab-roles.js wsab-management.js wsab-student-school.js wsab-classroom-cloud.js wsab-grading.js site/
           cp icons/icon.svg site/icons/icon.svg
+          cp -R site/. app/src/main/assets/site/
           python - <<'PY'
           from pathlib import Path
-          p=Path('site/index.html')
+          p=Path('app/src/main/assets/site/index.html')
           s=p.read_text(encoding='utf-8')
           for tag in ['<script src="firebase-rest.js"></script>','<script src="wsab-features.js"></script>','<script src="wsab-roles.js"></script>','<script src="wsab-management.js"></script>','<script src="wsab-student-school.js"></script>','<script src="wsab-classroom-cloud.js"></script>','<script src="wsab-grading.js"></script>']:
               if tag not in s:
                   s=s.replace('</body>', tag+'\n</body>')
           p.write_text(s, encoding='utf-8')
-          Path('site/.nojekyll').write_text('', encoding='utf-8')
           PY
+
       - name: Check JavaScript syntax
         shell: bash
         run: |
           for f in firebase-rest.js wsab-features.js wsab-roles.js wsab-management.js wsab-student-school.js wsab-classroom-cloud.js wsab-grading.js; do node --check "$f"; done
-      - name: Verify production files
+
+      - name: Verify Android project
         shell: bash
         run: |
-          test -s site/index.html
-          test -s site/manifest.json
-          test -s site/sw.js
-          test -s site/firebase-rest.js
-          test -s site/wsab-classroom-cloud.js
-          test -s site/wsab-grading.js
-          test -s site/icons/icon.svg
-          grep -q 'wsab-classroom-cloud.js' site/index.html
-          grep -q 'wsab-grading.js' site/index.html
-      - name: Package production site
+          test -s app/src/main/AndroidManifest.xml
+          test -s app/src/main/java/com/wsab/educational/science/MainActivity.java
+          test -s app/src/main/res/values/styles.xml
+          test -s app/src/main/assets/site/index.html
+          grep -q 'com.wsab.educational.science' app/build.gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Build APK
+        shell: bash
+        run: gradle --no-daemon :app:assembleDebug
+
+      - name: Verify APK
+        shell: bash
+        run: |
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          file app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: wsab-science-production-${{ github.run_number }}
-          path: site
+          name: wsab-science-apk-${{ github.run_number }}
+          path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
+
       - name: Build summary
         shell: bash
         run: |
-          echo "Wsab Science production build completed successfully."
+          echo "Wsab Science APK build completed successfully."
           echo "Run: ${{ github.run_number }}"
-          echo "Commit: ${{ github.sha }}"
-
-# Pages deployment is intentionally separated from the build because this repository's
-# GitHub Actions integration cannot enable a Pages site automatically.
+          echo "APK: app/build/outputs/apk/debug/app-debug.apk"
