@@ -1,0 +1,20 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "hosting": {
+    "public": ".",
+    "ignore": ["firebase.json", "firestore.rules", "twa-manifest.json", ".git/**", ".github/**"],
+    "cleanUrls": true,
+    "headers": [
+      {
+        "source": "**/*.@(js|css)",
+        "headers": [{"key":"Cache-Control","value":"public,max-age=3600"}]
+      },
+      {
+        "source": "service-worker.js",
+        "headers": [{"key":"Cache-Control","value":"no-cache"}]
+      }
+    ]
+  }
+}
