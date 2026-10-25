@@ -26,13 +26,13 @@ jobs:
         run: |
           rm -rf site
           mkdir -p site/icons
-          cp index.html manifest.json sw.js firebase-rest.js wsab-features.js site/
+          cp index.html manifest.json sw.js firebase-rest.js wsab-features.js wsab-roles.js site/
           cp icons/icon.svg site/icons/icon.svg
           python - <<'PY'
           from pathlib import Path
           p=Path('site/index.html')
           s=p.read_text(encoding='utf-8')
-          for tag in ['<script src="firebase-rest.js"></script>','<script src="wsab-features.js"></script>']:
+          for tag in ['<script src="firebase-rest.js"></script>','<script src="wsab-features.js"></script>','<script src="wsab-roles.js"></script>']:
               if tag not in s:
                   s=s.replace('</body>', tag+'\n</body>')
           p.write_text(s, encoding='utf-8')
