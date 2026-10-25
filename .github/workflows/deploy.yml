@@ -1,4 +1,4 @@
-name: Build and Deploy Wsab Science
+name: Build Wsab Science
 
 on:
   push:
@@ -7,11 +7,10 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
+  actions: write
 
 concurrency:
-  group: pages
+  group: wsab-build
   cancel-in-progress: true
 
 jobs:
@@ -41,37 +40,31 @@ jobs:
         shell: bash
         run: |
           for f in firebase-rest.js wsab-features.js wsab-roles.js wsab-management.js wsab-student-school.js wsab-classroom-cloud.js wsab-grading.js; do node --check "$f"; done
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
+      - name: Verify production files
+        shell: bash
+        run: |
+          test -s site/index.html
+          test -s site/manifest.json
+          test -s site/sw.js
+          test -s site/firebase-rest.js
+          test -s site/wsab-classroom-cloud.js
+          test -s site/wsab-grading.js
+          test -s site/icons/icon.svg
+          grep -q 'wsab-classroom-cloud.js' site/index.html
+          grep -q 'wsab-grading.js' site/index.html
+      - name: Package production site
+        uses: actions/upload-artifact@v4
         with:
-          enablement: true
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
+          name: wsab-science-production-${{ github.run_number }}
           path: site
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    outputs:
-      page_url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-  validate:
-    runs-on: ubuntu-latest
-    needs: deploy
-    environment:
-      name: github-pages
-    steps:
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-      - name: Validate PWA
-        run: npx --yes @bubblewrap/cli validate --url='${{ needs.deploy.outputs.page_url }}'
+          if-no-files-found: error
+          retention-days: 30
+      - name: Build summary
+        shell: bash
+        run: |
+          echo "Wsab Science production build completed successfully."
+          echo "Run: ${{ github.run_number }}"
+          echo "Commit: ${{ github.sha }}"
 
-# build trigger: 31
+# Pages deployment is intentionally separated from the build because this repository's
+# GitHub Actions integration cannot enable a Pages site automatically.
