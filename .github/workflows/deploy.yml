@@ -20,33 +20,29 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-
       - name: Prepare site
         shell: bash
         run: |
           rm -rf site
           mkdir -p site/icons
-          cp index.html manifest.json sw.js firebase-rest.js wsab-features.js wsab-roles.js wsab-management.js site/
+          cp index.html manifest.json sw.js firebase-rest.js wsab-features.js wsab-roles.js wsab-management.js wsab-student-school.js site/
           cp icons/icon.svg site/icons/icon.svg
           python - <<'PY'
           from pathlib import Path
           p=Path('site/index.html')
           s=p.read_text(encoding='utf-8')
-          for tag in ['<script src="firebase-rest.js"></script>','<script src="wsab-features.js"></script>','<script src="wsab-roles.js"></script>','<script src="wsab-management.js"></script>']:
+          for tag in ['<script src="firebase-rest.js"></script>','<script src="wsab-features.js"></script>','<script src="wsab-roles.js"></script>','<script src="wsab-management.js"></script>','<script src="wsab-student-school.js"></script>']:
               if tag not in s:
                   s=s.replace('</body>', tag+'\n</body>')
           p.write_text(s, encoding='utf-8')
           Path('site/.nojekyll').write_text('', encoding='utf-8')
           PY
-
       - name: Configure Pages
         uses: actions/configure-pages@v5
-
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
           path: site
-
   deploy:
     runs-on: ubuntu-latest
     needs: build
@@ -59,7 +55,6 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
   validate:
     runs-on: ubuntu-latest
     needs: deploy
