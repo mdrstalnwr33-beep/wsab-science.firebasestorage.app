@@ -3,10 +3,15 @@
   "short_name": "وصاب التعليمية",
   "lang": "ar",
   "dir": "rtl",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "theme_color": "#0f766e",
   "background_color": "#f4f7f8",
-  "description": "منصة تعليمية علمية للمعلم والطالب للتحضير والاختبارات والدرجات والمكتبة والإحصائيات."
+  "description": "منصة تعليمية علمية للمعلم والطالب للتحضير والاختبارات والدرجات والمكتبة والإحصائيات.",
+  "categories": ["education"],
+  "icons": [
+    {"src":"icons/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
 }
