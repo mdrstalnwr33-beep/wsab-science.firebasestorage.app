@@ -43,6 +43,8 @@ jobs:
           for f in firebase-rest.js wsab-features.js wsab-roles.js wsab-management.js wsab-student-school.js wsab-classroom-cloud.js wsab-grading.js; do node --check "$f"; done
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
