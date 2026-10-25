@@ -1,0 +1,15 @@
+/* منصة وصاب — لوحة الطالب وإحصائيات المدرسة */
+(() => {
+  const M='wsabManagementV1';
+  const read=()=>{try{return JSON.parse(localStorage.getItem(M)||'{"classes":[],"assignments":[]}')}catch{return {classes:[],assignments:[]}}};
+  function add(id,title,html){const c=document.querySelector('.content');if(!c||document.getElementById(id))return;const s=document.createElement('section');s.className='page';s.id=id;s.innerHTML=`<div class="section-title"><h3>${title}</h3></div><div class="card" id="${id}Body">${html}</div>`;c.appendChild(s)}
+  function mount(){
+    add('myProgress','📈 تقدمي الدراسي','<div class="grid3"><div class="card"><b>الإنجاز</b><div class="stat"><span class="num" id="wmProg">0%</span><span>🎯</span></div></div><div class="card"><b>التكليفات</b><div class="stat"><span class="num" id="wmTasksN">0</span><span>📝</span></div></div><div class="card"><b>الفصول</b><div class="stat"><span class="num" id="wmClassesN">0</span><span>🏫</span></div></div></div><div class="section-title"><h3>التكليفات المتاحة</h3></div><div id="wmStudentTasks"></div>');
+    add('schoolStats','🏫 إحصائيات المدرسة','<div class="grid3"><div class="card"><b>عدد الفصول</b><div class="stat"><span class="num" id="wsClasses">0</span><span>🏫</span></div></div><div class="card"><b>عدد الطلاب</b><div class="stat"><span class="num" id="wsStudents">0</span><span>👨‍🎓</span></div></div><div class="card"><b>التكليفات المنشورة</b><div class="stat"><span class="num" id="wsAssignments">0</span><span>📝</span></div></div></div><div class="success">يمكن تطوير هذه الصفحة لاحقاً إلى تقارير الحضور والدرجات والنتائج حسب الصف والمادة.</div>');
+    const nav=document.getElementById('nav');if(!nav)return;
+    const addNav=(id,label)=>{if(nav.querySelector(`[data-page="${id}"]`))return;const b=document.createElement('button');b.dataset.page=id;b.textContent=label;b.addEventListener('click',()=>{document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id)?.classList.add('active');const t=document.getElementById('pageTitle');if(t)t.textContent=label;render()});nav.appendChild(b)};
+    addNav('myProgress','📈 تقدمي الدراسي');addNav('schoolStats','🏫 إحصائيات المدرسة');render();
+  }
+  function render(){const s=read(),students=s.classes.reduce((n,c)=>n+(c.students||[]).length,0);const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};set('wmClassesN',s.classes.length);set('wmTasksN',s.assignments.length);set('wmProg',s.assignments.length?Math.min(100,s.assignments.length*10)+'%':'0%');set('wsClasses',s.classes.length);set('wsStudents',students);set('wsAssignments',s.assignments.length);const box=document.getElementById('wmStudentTasks');if(box)box.innerHTML=s.assignments.length?s.assignments.slice().reverse().map(a=>`<div class="question"><strong>${a.title}</strong><div class="muted">${a.className}</div><button class="btn primary" style="margin-top:8px">فتح المهمة</button></div>`).join(''):'<p class="muted">لا توجد تكليفات منشورة حالياً.</p>'}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
+})();
