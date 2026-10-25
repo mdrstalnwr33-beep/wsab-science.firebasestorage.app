@@ -1,0 +1,12 @@
+{
+  "name": "منصة وصاب التعليمية العلمية",
+  "short_name": "وصاب التعليمية",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#0f766e",
+  "background_color": "#f4f7f8",
+  "description": "منصة تعليمية علمية للمعلم والطالب للتحضير والاختبارات والدرجات والمكتبة والإحصائيات."
+}
