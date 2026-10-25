@@ -24,13 +24,13 @@ jobs:
         run: |
           rm -rf app/src/main/assets/site
           mkdir -p app/src/main/assets/site/icons
-          cp index.html manifest.json sw.js firebase-rest.js wsab-features.js wsab-roles.js wsab-management.js wsab-student-school.js wsab-classroom-cloud.js wsab-grading.js wsab-home.js wsab-agent.js wsab-reference-suite.js wsab-integration.js wsab-achievements.js wsab-internal-view.js app/src/main/assets/site/
+          cp index.html manifest.json sw.js firebase-rest.js wsab-features.js wsab-roles.js wsab-management.js wsab-student-school.js wsab-classroom-cloud.js wsab-grading.js wsab-home.js wsab-agent.js wsab-reference-suite.js wsab-integration.js wsab-achievements.js wsab-internal-view.js wsab-exam-editor.js app/src/main/assets/site/
           cp icons/icon.svg app/src/main/assets/site/icons/icon.svg
           python - <<'PY'
           from pathlib import Path
           p=Path('app/src/main/assets/site/index.html')
           s=p.read_text(encoding='utf-8')
-          for tag in ['<script src="wsab-internal-view.js"></script>','<script src="wsab-achievements.js"></script>']:
+          for tag in ['<script src="wsab-internal-view.js"></script>','<script src="wsab-achievements.js"></script>','<script src="wsab-exam-editor.js"></script>']:
               if tag not in s:
                   s=s.replace('</body>', tag+'\n</body>')
           p.write_text(s,encoding='utf-8')
@@ -42,6 +42,7 @@ jobs:
           node --check wsab-achievements.js
           node --check wsab-integration.js
           node --check wsab-internal-view.js
+          node --check wsab-exam-editor.js
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
