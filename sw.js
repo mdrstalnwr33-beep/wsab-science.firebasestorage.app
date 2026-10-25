@@ -1,4 +1,4 @@
-const CACHE='wsab-science-v9';
+const CACHE='wsab-science-v10';
 const ASSETS=['./','./index.html','./manifest.json','./sw.js','./firebase-rest.js','./wsab-features.js','./wsab-roles.js','./wsab-management.js','./wsab-student-school.js','./wsab-classroom-cloud.js','./wsab-grading.js','./wsab-home.js','./wsab-agent.js','./wsab-reference-suite.js','./wsab-integration.js','./wsab-achievements.js','./wsab-internal-view.js','./icons/icon.svg'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
