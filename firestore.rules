@@ -1,8 +1,44 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+    function classDoc(classId) { return get(/databases/$(database)/documents/classrooms/$(classId)); }
+    function owner(classId) { return signedIn() && classDoc(classId).data.ownerUid == me(); }
+    function member(classId) { return signedIn() && exists(/databases/$(database)/documents/classrooms/$(classId)/students/$(me())); }
+
     match /users/{userId}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if signedIn() && me() == userId;
+    }
+
+    match /classroomInvites/{code} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create, update, delete: if signedIn() && request.resource.data.ownerUid == me();
+    }
+
+    match /classrooms/{classId} {
+      allow create: if signedIn() && request.resource.data.ownerUid == me();
+      allow get: if owner(classId) || member(classId);
+      allow list: if false;
+      allow update, delete: if owner(classId);
+
+      match /students/{studentId} {
+        allow get, list: if owner(classId) || (signedIn() && studentId == me());
+        allow create, update: if owner(classId) || (signedIn() && studentId == me());
+        allow delete: if owner(classId) || (signedIn() && studentId == me());
+      }
+
+      match /assignments/{assignmentId} {
+        allow get, list: if owner(classId) || member(classId);
+        allow create, update, delete: if owner(classId);
+
+        match /submissions/{studentId} {
+          allow get, list: if owner(classId) || (signedIn() && studentId == me());
+          allow create, update: if signedIn() && studentId == me() && member(classId);
+          allow delete: if owner(classId) || (signedIn() && studentId == me());
+        }
+      }
     }
   }
 }
