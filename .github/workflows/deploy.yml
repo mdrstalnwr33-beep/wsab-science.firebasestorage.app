@@ -25,14 +25,14 @@ jobs:
         run: |
           rm -rf site app/src/main/assets/site
           mkdir -p site/icons app/src/main/assets/site/icons
-          cp index.html manifest.json sw.js firebase-rest.js wsab-features.js wsab-roles.js wsab-management.js wsab-student-school.js wsab-classroom-cloud.js wsab-grading.js wsab-home.js wsab-agent.js wsab-reference-suite.js wsab-integration.js wsab-achievements.js site/
+          cp index.html manifest.json sw.js firebase-rest.js wsab-features.js wsab-roles.js wsab-management.js wsab-student-school.js wsab-classroom-cloud.js wsab-grading.js wsab-home.js wsab-agent.js wsab-reference-suite.js wsab-integration.js wsab-achievements.js wsab-internal-view.js site/
           cp icons/icon.svg site/icons/icon.svg
           cp -R site/. app/src/main/assets/site/
           python - <<'PY'
           from pathlib import Path
           p=Path('app/src/main/assets/site/index.html')
           s=p.read_text(encoding='utf-8')
-          tags=['firebase-rest.js','wsab-features.js','wsab-roles.js','wsab-management.js','wsab-student-school.js','wsab-classroom-cloud.js','wsab-grading.js','wsab-home.js','wsab-agent.js','wsab-reference-suite.js','wsab-integration.js','wsab-achievements.js']
+          tags=['firebase-rest.js','wsab-features.js','wsab-roles.js','wsab-management.js','wsab-student-school.js','wsab-classroom-cloud.js','wsab-grading.js','wsab-home.js','wsab-agent.js','wsab-reference-suite.js','wsab-integration.js','wsab-achievements.js','wsab-internal-view.js']
           for name in tags:
               tag=f'<script src="{name}"></script>'
               if tag not in s:
@@ -43,7 +43,7 @@ jobs:
       - name: Check JavaScript syntax
         shell: bash
         run: |
-          for f in firebase-rest.js wsab-features.js wsab-roles.js wsab-management.js wsab-student-school.js wsab-classroom-cloud.js wsab-grading.js wsab-home.js wsab-agent.js wsab-reference-suite.js wsab-integration.js wsab-achievements.js; do node --check "$f"; done
+          for f in firebase-rest.js wsab-features.js wsab-roles.js wsab-management.js wsab-student-school.js wsab-classroom-cloud.js wsab-grading.js wsab-home.js wsab-agent.js wsab-reference-suite.js wsab-integration.js wsab-achievements.js wsab-internal-view.js; do node --check "$f"; done
 
       - name: Verify Android project
         shell: bash
