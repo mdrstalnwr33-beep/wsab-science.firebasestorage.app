@@ -3,12 +3,26 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
     function me() { return request.auth.uid; }
+    function profile() { return get(/databases/$(database)/documents/users/$(me())/profile); }
+    function staff() { return signedIn() && profile().data.role in ['teacher', 'school']; }
     function classDoc(classId) { return get(/databases/$(database)/documents/classrooms/$(classId)); }
     function owner(classId) { return signedIn() && classDoc(classId).data.ownerUid == me(); }
     function member(classId) { return signedIn() && exists(/databases/$(database)/documents/classrooms/$(classId)/students/$(me())); }
 
     match /users/{userId}/{document=**} {
       allow read, write: if signedIn() && me() == userId;
+    }
+
+    match /presence/{userId} {
+      allow read: if staff();
+      allow create, update: if signedIn() && me() == userId;
+      allow delete: if signedIn() && me() == userId;
+    }
+
+    match /presenceDays/{date}/users/{userId} {
+      allow read: if staff();
+      allow create, update: if signedIn() && me() == userId;
+      allow delete: if signedIn() && me() == userId;
     }
 
     match /classroomInvites/{code} {
