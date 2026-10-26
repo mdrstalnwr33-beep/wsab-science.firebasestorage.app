@@ -39,6 +39,7 @@ jobs:
       - name: Check JavaScript syntax
         shell: bash
         run: |
+          node --check firebase-rest.js
           node --check wsab-achievements.js
           node --check wsab-integration.js
           node --check wsab-internal-view.js
