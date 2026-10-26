@@ -15,7 +15,7 @@
   async function refreshSession(){const s=readSession();if(!s)return null;if(s.expiresAt>Date.now()+60000)return s;if(!s.refreshToken)return null;const r=await fetch(`https://securetoken.googleapis.com/v1/token?key=${encodeURIComponent(CONFIG.apiKey)}`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`grant_type=refresh_token&refresh_token=${encodeURIComponent(s.refreshToken)}`});const j=await r.json();if(!r.ok){localStorage.removeItem(SESSION_KEY);return null}const n={...s,idToken:j.id_token,refreshToken:j.refresh_token||s.refreshToken,expiresAt:Date.now()+Number(j.expires_in||3600)*1000};writeSession(n);return n}
   const toV=v=>v===null?{nullValue:null}:typeof v==='boolean'?{booleanValue:v}:typeof v==='number'?(Number.isInteger(v)?{integerValue:String(v)}:{doubleValue:v}):Array.isArray(v)?{arrayValue:{values:v.map(toV)}}:typeof v==='object'?{mapValue:{fields:Object.fromEntries(Object.entries(v).map(([k,x])=>[k,toV(x)]))}}:{stringValue:String(v)};
   const fromV=v=>!v?null:'nullValue'in v?null:'booleanValue'in v?v.booleanValue:'integerValue'in v?Number(v.integerValue):'doubleValue'in v?Number(v.doubleValue):'stringValue'in v?v.stringValue:'timestampValue'in v?v.timestampValue:'arrayValue'in v?(v.arrayValue.values||[]).map(fromV):'mapValue'in v?Object.fromEntries(Object.entries(v.mapValue.fields||{}).map(([k,x])=>[k,fromV(x)])):null;
-  async function fsPut(path,data){const s=await refreshSession()||await anonymousLogin();const r=await fetch(`${FS}/${path}`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':`Bearer ${s.idToken}`},body:JSON.stringify({fields:Object.fromEntries(Object.entries(data).map(([k,v])=>[k,toV(v)]))})});const j=await r.json();if(!r.ok)throw new Error(j?.error?.message||'Firestore write failed');return j}
+  async function fsPut(path,data){const s=await refreshSession()||await anonymousLogin();const r=await fetch(`${FS}/${path}`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':`Bearer ${s.idToken}`},body:JSON.stringify({fields:Object.fromEntries(Object.entries(data).filter(([,v])=>v!==undefined).map(([k,v])=>[k,toV(v)]))})});const j=await r.json();if(!r.ok)throw new Error(j?.error?.message||'Firestore write failed');return j}
   async function fsGet(path){const s=await refreshSession()||await anonymousLogin();const r=await fetch(`${FS}/${path}`,{headers:{Authorization:`Bearer ${s.idToken}`}});if(r.status===404)return null;const j=await r.json();if(!r.ok)throw new Error(j?.error?.message||'Firestore read failed');return Object.fromEntries(Object.entries(j.fields||{}).map(([k,v])=>[k,fromV(v)]))}
   async function fsList(path){const s=await refreshSession()||await anonymousLogin();const r=await fetch(`${FS}/${path}?pageSize=100`,{headers:{Authorization:`Bearer ${s.idToken}`}});if(r.status===404)return [];const j=await r.json();if(!r.ok)throw new Error(j?.error?.message||'Firestore list failed');return (j.documents||[]).map(d=>({name:d.name,data:Object.fromEntries(Object.entries(d.fields||{}).map(([k,v])=>[k,fromV(v)]))}));}
   async function syncLocalState(){const base=JSON.parse(localStorage.getItem('wsab_science_v1')||'{}');const features=JSON.parse(localStorage.getItem('wsabFeatureStateV1')||'{}');const safe={lessons:base.lessons||[],books:base.books||[],students:[...(base.students||[]),...(features.students||[])],grades:base.grades||[],schedule:base.schedule||[],tests:base.tests||[],activities:(base.activities||[]).slice(0,100),self:base.self||[],featureState:features,syncedAt:new Date().toISOString()};const s=await refreshSession()||await anonymousLogin();await fsPut(`users/${encodeURIComponent(s.localId)}/workspace`,safe);return s}
@@ -31,12 +31,16 @@
     const onlineUntil=new Date(now+150000).toISOString();
     const base={uid:s.localId,name,role:p.role,lastSeen:nowIso(),onlineUntil,dateKey:date,app:'wsab-science'};
     await fsPut(`presence/${uid}`,base);
-    if(p.role==='student') await fsPut(`presenceDays/${date}/users/${uid}`,{...base,firstSeen:presenceState.lastDate===date&&!force?undefined:nowIso()});
+    if(p.role==='student'){
+      const old=await fsGet(`presenceDays/${date}/users/${uid}`);
+      await fsPut(`presenceDays/${date}/users/${uid}`,{...base,firstSeen:old?.firstSeen||nowIso()});
+    }
     presenceState.lastDate=date;
     return base;
   }
   async function startPresence(){
     if(presenceState.started)return;
+    const p=readProfile();if(!p?.role||p.role==='guest')return;
     presenceState.started=true;
     try{await heartbeatPresence(true)}catch(e){console.warn('Presence heartbeat:',e.message)}
     presenceState.timer=setInterval(()=>heartbeatPresence().catch(e=>console.warn('Presence heartbeat:',e.message)),60000);
@@ -56,7 +60,7 @@
   }
 
   function mount(){const actions=document.querySelector('.top .actions');if(actions&&!document.getElementById('wsabCloudBtn')){const sync=document.createElement('button');sync.id='wsabCloudBtn';sync.className='btn ghost';sync.textContent='☁️ مزامنة';const restore=document.createElement('button');restore.className='btn';restore.textContent='☁️ استعادة';const login=document.createElement('button');login.className='btn';login.textContent='👤 حساب المعلم';sync.onclick=async()=>{try{await syncLocalState();alert('تمت مزامنة بيانات المنصة مع Firebase.')}catch(e){alert('تعذر المزامنة: '+e.message)}};restore.onclick=async()=>{try{await restoreCloudState();alert('تمت الاستعادة من السحابة. أعد تحميل الصفحة.')}catch(e){alert('تعذر الاستعادة: '+e.message)}};login.onclick=async()=>{const mode=confirm('اضغط موافق لتسجيل الدخول، وإلغاء لإنشاء حساب جديد.');const email=prompt('البريد الإلكتروني:');if(!email)return;const password=prompt('كلمة المرور:');if(!password)return;try{if(mode)await passwordLogin(email,password);else await passwordSignup(email,password);alert('تم تجهيز الحساب السحابي بنجاح.')}catch(e){alert('تعذر العملية: '+e.message)}};actions.append(sync,restore,login)}
-    startPresence().catch(()=>{});setTimeout(presencePanel,1500);setInterval(presencePanel,3000);
+    startPresence().catch(()=>{});setInterval(()=>{startPresence().catch(()=>{});presencePanel()},3000);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
 })();
